@@ -1,0 +1,122 @@
+﻿@page "/dashboard"
+@rendermode InteractiveAuto
+
+@using BlazorInteractiveAuto.Client.Models
+@using BlazorInteractiveAuto.Client.Services
+
+@inject ISalesService SalesService
+
+<PageTitle>Sales Dashboard</PageTitle>
+
+<div class="dashboard">
+    <div class="dashboard-header">
+        <div>
+            <h1>Sales Dashboard</h1>
+            <p>Overview of recent sales activity.</p>
+        </div>
+        <div class="runtime-info">
+            <span class="runtime-label">
+                Execution environment
+            </span>
+            <strong>@RendererInfo.Name</strong>
+            <small>
+                @(RendererInfo.IsInteractive
+                    ? "Interactive"
+                    : "Prerendering")
+            </small>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <p>Loading sales data...</p>
+    }
+    else if (error is not null)
+    {
+        <p class="error">@error</p>
+    }
+    else
+    {
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <span>Total orders</span>
+                <strong>@sales.Count</strong>
+            </div>
+            <div class="kpi-card">
+                <span>Completed revenue</span>
+                <strong>@CompletedRevenue.ToString("C")</strong>
+            </div>
+            <div class="kpi-card">
+                <span>Pending orders</span>
+                <strong>@sales.Count(s => s.Status == "Pending")</strong>
+            </div>
+            <div class="kpi-card">
+                <span>Average order value</span>
+                <strong>@AverageOrderValue.ToString("C")</strong>
+            </div>
+        </div>
+
+        <div class="sales-section">
+            <div class="sales-toolbar">
+                <h2>Recent sales</h2>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Region</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var sale in sales)
+                        {
+                            <tr @key="sale.Id">
+                                <td>@sale.Customer</td>
+                                <td>@sale.Product</td>
+                                <td>@sale.Region</td>
+                                <td>@sale.Date.ToString("dd MMM yyyy")</td>
+                                <td>@sale.Amount.ToString("C")</td>
+                                <td>
+                                    <span class="status @sale.Status.ToLowerInvariant()">
+                                        @sale.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<Sale> sales = [];
+    private bool isLoading = true;
+    private string? error;
+
+    private decimal CompletedRevenue => sales.Where(s => s.Status == "Completed").Sum(s => s.Amount);
+    private decimal AverageOrderValue => sales.Count == 0 ? 0 : sales.Average(s => s.Amount);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            sales = await SalesService.GetSalesAsync();
+        }
+        catch (Exception)
+        {
+            error = "Unable to load sales data.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
