@@ -133,6 +133,19 @@ tbody tr:hover {
     font-size: 12px;
 }
 
+.remove-button {
+    padding: 6px 10px;
+    border: 1px solid #e2a2a2;
+    border-radius: 6px;
+    background: white;
+    color: #b83232;
+    cursor: pointer;
+}
+
+    .remove-button:hover {
+        background: #fde8e8;
+    }
+
     .status.completed {
         background: #e6f4ea;
         color: #287747;

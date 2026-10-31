@@ -70,6 +70,7 @@
                             <th>Date</th>
                             <th>Amount</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
@@ -87,6 +88,11 @@
                                         @sale.Status
                                     </span>
                                 </td>
+                                <td>
+                                    <button type="button" class="remove-button" @onclick="() => RemoveSale(sale.Id)">
+                                        Remove
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -97,18 +103,23 @@
 </div>
 
 @code {
-    private IReadOnlyList<Sale> sales = [];
+    private List<Sale> sales = [];
     private bool isLoading = true;
     private string? error;
 
     private decimal CompletedRevenue => sales.Where(s => s.Status == "Completed").Sum(s => s.Amount);
     private decimal AverageOrderValue => sales.Count == 0 ? 0 : sales.Average(s => s.Amount);
 
+    private void RemoveSale(int saleId)
+    {
+        sales.RemoveAll(s => s.Id == saleId);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            sales = await SalesService.GetSalesAsync();
+            sales = (await SalesService.GetSalesAsync()).ToList();
         }
         catch (Exception)
         {
