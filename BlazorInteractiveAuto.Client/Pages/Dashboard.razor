@@ -113,6 +113,7 @@
     private void RemoveSale(int saleId)
     {
         sales.RemoveAll(s => s.Id == saleId);
+        Console.WriteLine($"Item with id '{saleId}' removed. Render mode: {RendererInfo.Name}");
     }
 
     protected override async Task OnInitializedAsync()
